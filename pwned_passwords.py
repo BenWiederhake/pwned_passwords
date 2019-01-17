@@ -12,7 +12,6 @@
 
 ########################################
 # Imports
-import logging
 import hashlib
 import requests
 import sys
