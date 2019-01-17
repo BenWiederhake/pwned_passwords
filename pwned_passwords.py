@@ -78,8 +78,11 @@ def main():
             print('Password pwned: {}'.format(line))
             bad_pws += 1
         checked += 1
+        if checked % 10 == 0:
+            print('(Processed {} passwords ...)'.format(checked))
 
     # Final result
+    print('Done!')
     print('{} passwords checked, {} of which are pwned.'.format(checked, bad_pws))
 
 
