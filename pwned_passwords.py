@@ -75,7 +75,7 @@ def main():
         is_pwned = check_hash(sha1_prefix, sha1_suffix)
         # Display intermediate results
         if is_pwned:
-            print('Password pwned: {}'.format(line))
+            print('Password pwned: {}'.format(password))
             bad_pws += 1
         checked += 1
         if checked % 10 == 0:
