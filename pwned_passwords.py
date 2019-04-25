@@ -12,7 +12,9 @@
 
 ########################################
 # Imports
+import collections
 import hashlib
+import random
 import requests
 import sys
 import time
@@ -32,58 +34,67 @@ def hash_password(password):
     sha1_hexdigest = sha1.hexdigest().upper()
     sha1_prefix = sha1_hexdigest[0:5]
     sha1_suffix = sha1_hexdigest[5:]
-    return (sha1_prefix, sha1_suffix)
+    return (sha1_prefix, sha1_suffix, password)
 
 
-def check_hash(sha1_prefix, sha1_suffix):
+def fetch_suffixes(sha1_prefixes):
     '''
     Check hash against pwnedpasswords.com
-    :param hash_dict: Python dict that has the hash and hash slices.
-    :return bool: Return whether this password is pwned.
     '''
+    sha1_prefixes = list(set(sha1_prefixes))  # Avoid duplicate requests
+    random.shuffle(sha1_prefixes)  # Don't leak any order
     base_url = 'https://api.pwnedpasswords.com/range/{0}'
-    time.sleep(0.5)  # Make sure we do not flood their service.
-    # This is not a magic number to prevent script kiddies from disabling it.
-    resp = requests.get(base_url.format(sha1_prefix))
-    is_pwned = False
-    if resp.status_code == 200:
+    pwned_suffixes = dict()
+    for prefix in sha1_prefixes:
+        time.sleep(1)  # Make sure we do not flood their service.
+        # Prevent catastrophically wrong usage:
+        assert len(prefix) == 5 and prefix.isalnum()
+        query_url = base_url.format(prefix)
+        # In case you want extra transparency:
+        #print(query_url)
+        resp = requests.get(query_url)
+        if resp.status_code != 200:
+            print('[!] Error checking hash. Code: {0}.  Abort!'.format(resp.status_code))
+            exit(1)
+        suffixes = set()
         for line in resp.text.split('\n'):
-            if line.startswith(sha1_suffix):
-                is_pwned = True
-    else:
-        print('[!] Error checking hash. Code: {0}.  Abort!'.format(resp.status_code))
-        exit(1)
-    return is_pwned
+            if line == '':
+                continue
+            suffix = line[:35]
+            assert len(suffix) == 35 and suffix.isalnum(), suffix
+            suffixes.add(suffix)
+        pwned_suffixes[prefix] = suffixes
+    return pwned_suffixes
+
+
+def check_bulk(passwords):
+    hashes = [hash_password(pw) for pw in passwords]
+    pwned_suffixes = fetch_suffixes(h[0] for h in hashes)
+    return [h[2] for h in hashes if h[1] in pwned_suffixes[h[0]]]
 
 
 def main():
     '''
     Main function that reads passwords one-by-one from stdin, and reports errors.
     '''
-    checked = 0
-    bad_pws = 0
-    print('Paste your passwords here, or pipe them in.')
-    print('Due to rate-limiting, this may take a while.')
+    # Fetch input
+    passwords = []
+    print('# Paste your passwords here, or pipe them in.')
+    print('# Remember to terminate input, e.g. by Ctrl-D.')
     for line in sys.stdin:
         # Strip any trailing newline characters.
-        # Note to self: A newline character in a password is
-        # a good start for an injection attack into the hacker's DB.
-        password = line.rstrip('\r\n')
-        # Hash the password
-        sha1_prefix, sha1_suffix = hash_password(password)
-        # Check password hash against pwnedpasswords.com
-        is_pwned = check_hash(sha1_prefix, sha1_suffix)
-        # Display intermediate results
-        if is_pwned:
-            print('Password pwned: {}'.format(password))
-            bad_pws += 1
-        checked += 1
-        if checked % 10 == 0:
-            print('(Processed {} passwords ...)'.format(checked))
+        passwords.append(line.rstrip('\r\n'))
+
+    # Do the checks
+    print('# Processing {} passwords now.'.format(len(passwords)))
+    print('# Due to rate-limiting, this may take a while.')
+    bad_pws = check_bulk(passwords)
 
     # Final result
-    print('Done!')
-    print('{} passwords checked, {} of which are pwned.'.format(checked, bad_pws))
+    print('# Done!')
+    for bad_pw in bad_pws:
+        print('# Password pwned: {}'.format(bad_pw))
+    print('# {} passwords checked, {} of which are pwned.'.format(len(passwords), len(bad_pws)))
 
 
 if __name__ == '__main__':
