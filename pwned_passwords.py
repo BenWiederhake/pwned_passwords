@@ -52,7 +52,7 @@ def fetch_suffixes(sha1_prefixes):
         query_url = base_url.format(prefix)
         # In case you want extra transparency:
         #print(query_url)
-        resp = requests.get(query_url)
+        resp = requests.get(query_url, headers={'Add-Padding': 'true'})
         if resp.status_code != 200:
             print('[!] Error checking hash. Code: {0}.  Abort!'.format(resp.status_code))
             exit(1)
