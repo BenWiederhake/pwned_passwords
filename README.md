@@ -64,6 +64,7 @@ I'm mostly happy with the tool.
 I want to:
 * Keep it up to date
 * Maybe add something so that my personal `throwaway_passwords.txt` is checked regularly?
+* Make it even easier to audit?
 
 ## NOTDOs
 
@@ -71,6 +72,7 @@ Here are some things this project will definitely not support:
 * Dummy requests (What for? just inject it into your source then!)
 * Avoiding the rate-limiting (Be a nice netizen!)
 * Be more performant (Because performance doesn't matter here)
+* Exception handling (The user is probably a Big Boy/Girl/Programmer/Dinosaur and should try to understand the error themselves)
 
 ## Contribute
 

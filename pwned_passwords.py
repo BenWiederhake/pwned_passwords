@@ -2,16 +2,11 @@
 # coding=utf-8
 #
 # Check to see if a password shows up on Troy Hunt's
-# V2 update to Pwned Passwords, and if so, how many
-# times.
-#
-# Todo: add exception handling
+# V6 update to Pwned Passwords.
 #
 # Strongly influenced by https://github.com/zenone/pwned_passwords/
 
 
-########################################
-# Imports
 import collections
 import hashlib
 import random
@@ -19,9 +14,6 @@ import requests
 import sys
 import time
 
-
-########################################
-# Functions
 
 def hash_password(password):
     '''
@@ -39,7 +31,7 @@ def hash_password(password):
 
 def fetch_suffixes(sha1_prefixes):
     '''
-    Check hash against pwnedpasswords.com
+    Check hashes against pwnedpasswords.com
     '''
     sha1_prefixes = list(set(sha1_prefixes))  # Avoid duplicate requests
     random.shuffle(sha1_prefixes)  # Don't leak any order
