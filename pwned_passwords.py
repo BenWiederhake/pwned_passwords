@@ -7,7 +7,6 @@
 # Strongly influenced by https://github.com/zenone/pwned_passwords/
 
 
-import collections
 import hashlib
 import random
 import requests
