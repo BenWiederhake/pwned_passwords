@@ -37,7 +37,7 @@ def fetch_suffixes(sha1_prefixes):
     base_url = 'https://api.pwnedpasswords.com/range/{0}'
     pwned_suffixes = dict()
     for prefix in sha1_prefixes:
-        time.sleep(1)  # Make sure we do not flood their service.
+        time.sleep(0.05)  # Make sure we do not flood their service too badly.
         # Prevent catastrophically wrong usage:
         assert len(prefix) == 5 and prefix.isalnum()
         query_url = base_url.format(prefix)
@@ -78,7 +78,6 @@ def main():
 
     # Do the checks
     print('# Processing {} passwords now.'.format(len(passwords)))
-    print('# Due to rate-limiting, this may take a while.')
     bad_pws = check_bulk(passwords)
 
     # Final result
